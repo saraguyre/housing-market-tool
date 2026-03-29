@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="mapbox-token" content="pk.eyJ1Ijoic2d1eXJlMjAyNiIsImEiOiJjbW5hbDI1c2swa2l5MnJwcGFhMmhib2tzIn0.nrSMAF-1jntRIczjbfu5dA">
+<title>The Housing Market Sucks | Market Check</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+
+<style>
+:root{
+  --bg:#f5f8fc;
+  --panel:#ffffff;
+  --panel-soft:#f8fbff;
+  --text:#1d2b3a;
+  --muted:#6c7a89;
+  --line:#dfe7f1;
+  --blue:#2d7ff9;
+  --blue-dark:#1b63cf;
+  --green:#1ea667;
+  --green-soft:#e8f7ef;
+  --red:#d84c4c;
+  --red-soft:#fff0f0;
+  --gold:#b3832f;
+  --shadow:0 10px 30px rgba(22,39,63,.08);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:linear-gradient(180deg,#f8fbff 0%,#f2f6fb 100%);
+  color:var(--text);
+}
+h1,h2,h3,.didot{font-family:"Plus Jakarta Sans",sans-serif;font-weight:700;letter-spacing:-.03em}
+.mono{font-family:"Roboto Mono",monospace}
+a{color:var(--blue)}
+.shell{max-width:1180px;margin:0 auto;padding:0 22px}
+.hero{
+  padding:38px 0 18px;
+}
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.brand h1{
+  margin:0;
+  font-size:clamp(2.25rem,6vw,4.4rem);
+  line-height:.95;
+  font-weight:800;
+}
+.section h2{font-weight:700}
+.brand p{
+  margin:12px 0 0;
+  color:var(--muted);
+  font-size:.98rem;
+  max-width:760px;
+  line-height:1.6;
+}
+.brand .accent{color:var(--blue)}
+.search-wrap{
+  margin-top:26px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:var(--shadow);
+  padding:18px;
+}
+.search-row{
+  display:grid;
+  grid-template-columns:minmax(260px,420px) auto;
+  gap:12px;
+  align-items:center;
+}
+.field{
+  position:relative;
+}
+.field input{
+  width:100%;
+  height:56px;
+  border:1px solid #cfd9e6;
+  background:#fff;
+  border-radius:16px;
+  padding:0 16px 0 46px;
+  font-size:1rem;
+  color:var(--text);
+  outline:none;
+  transition:.2s ease;
+}
+.field input:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 4px rgba(45,127,249,.12);
+}
+.field .fa-location-dot{
+  position:absolute;
+  left:16px;
+  top:50%;
+  transform:translateY(-50%);
+  color:var(--blue);
+}
+button.primary{
+  height:56px;
+  border:none;
+  background:linear-gradient(180deg,var(--blue) 0%,var(--blue-dark) 100%);
+  color:#fff;
+  font-weight:800;
+  letter-spacing:.03em;
+  border-radius:16px;
+  padding:0 22px;
+  font-size:.95rem;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(45,127,249,.22);
+}
+button.primary:hover{filter:brightness(1.03)}
+button.primary:disabled{opacity:.65;cursor:not-allowed}
+.help-row{
+  margin-top:12px;
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  color:var(--muted);
+  font-size:.87rem;
+}
+.help-pill{
+  background:#f0f6ff;
+  border:1px solid #d6e6ff;
+  color:#4f6b96;
+  padding:8px 12px;
+  border-radius:999px;
+}
+
+.map-card{
+  margin-top:20px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.map-head{
+  padding:16px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.map-head .title{
+  font-weight:700;
+}
+.map-head .sub{
+  color:var(--muted);
+  font-size:.88rem;
+}
+#map{
+  width:100%;
+  height:360px;
+  background:linear-gradient(180deg,#dde9f7 0%,#eef4fb 100%);
+}
+.map-note{
+  padding:12px 18px 16px;
+  color:var(--muted);
+  font-size:.88rem;
+}
+
+.results{
+  margin-top:22px;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:20px;
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(5, minmax(0,1fr));
+  gap:16px;
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+}
+.stat{
+  padding:18px 18px 16px;
+}
+.stat .label{
+  font-size:.76rem;
+  color:#6a7a8b;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-weight:700;
+}
+.stat .value{
+  margin-top:10px;
+  font-size:2rem;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+.stat .sub{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:.9rem;
+  line-height:1.45;
+}
+.market-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:.92rem;
+}
+.market-badge.green{background:var(--green-soft);color:var(--green)}
+.market-badge.red{background:var(--red-soft);color:var(--red)}
+.market-badge.neutral{background:#eef4fb;color:#4d6b8c}
+
+.duo{
+  display:grid;
+  grid-template-columns:1.25fr .95fr;
+  gap:20px;
+}
+.section{
+  padding:22px;
+}
+.section h2{
+  margin:0 0 10px;
+  font-size:2rem;
+}
+.section p.lead{
+  margin:0;
+  color:var(--muted);
+  line-height:1.65;
+}
+
+.toggle{
+  display:inline-flex;
+  background:#edf4fd;
+  border:1px solid #d8e5f6;
+  border-radius:14px;
+  padding:4px;
+  gap:4px;
+  margin-top:18px;
+}
+.toggle button{
+  border:none;
+  background:transparent;
+  color:#55708f;
+  border-radius:10px;
+  padding:10px 14px;
+  font-weight:700;
+  cursor:pointer;
+}
+.toggle button.active{
+  background:#fff;
+  color:var(--blue);
+  box-shadow:0 2px 8px rgba(43,80,121,.08);
+}
+.explain-box{
+  margin-top:16px;
+  background:var(--panel-soft);
+  border:1px solid #e4edf8;
+  border-radius:18px;
+  padding:18px;
+}
+.explain-title{
+  font-size:.8rem;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:#6a7a8b;
+  font-weight:700;
+}
+.explain-body{
+  margin-top:10px;
+  line-height:1.7;
+  color:#334456;
+}
+
+.score-list{
+  margin-top:16px;
+  display:grid;
+  gap:10px;
+}
+.score-item{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 14px;
+  background:#fbfdff;
+  border:1px solid #e8eef7;
+  border-radius:14px;
+  color:#415366;
+}
+.score-item strong{color:var(--text)}
+
+.rent-table-wrap{
+  margin-top:16px;
+  border:1px solid #e5edf7;
+  border-radius:18px;
+  overflow:hidden;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.95rem;
+}
+thead th{
+  text-align:left;
+  padding:14px 16px;
+  background:#f5f9ff;
+  color:#5f7287;
+  font-size:.76rem;
+  text-transform:uppercase;
+  letter-spacing:.11em;
+}
+tbody td{
+  padding:14px 16px;
+  border-top:1px solid #e8eef7;
+}
+tbody tr:nth-child(even){background:#fcfdff}
+
+.icon-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-top:16px;
+}
+.icon-item{
+  display:flex;
+  gap:14px;
+  padding:16px;
+  background:#fbfdff;
+  border:1px solid #e8eef7;
+  border-radius:18px;
+}
+.icon{
+  width:42px;height:42px;border-radius:12px;
+  background:#edf4fd;color:var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;
+}
+.icon-item h4{margin:0 0 6px;font-size:1rem}
+.icon-item p{margin:0;color:var(--muted);line-height:1.55;font-size:.92rem}
+
+.steps{
+  margin-top:16px;
+  display:grid;
+  gap:12px;
+}
+.step{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:14px;
+  background:#fbfdff;
+  border:1px solid #e8eef7;
+  border-radius:16px;
+}
+.step-num{
+  width:30px;height:30px;border-radius:999px;
+  background:var(--blue);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.88rem;font-weight:800;flex:0 0 auto;
+}
+.step p{margin:2px 0 0;color:var(--muted);line-height:1.55}
+.step strong{display:block}
+
+.notice{
+  margin-top:16px;
+  padding:15px 16px;
+  background:#fffaf1;
+  border:1px solid #f1e0b6;
+  border-radius:16px;
+  color:#69562d;
+  line-height:1.6;
+}
+.audit-box{
+  margin-top:16px;
+  background:#f8fbff;
+  border:1px solid #e4edf8;
+  border-radius:18px;
+  padding:18px;
+}
+textarea, .audit-box input{
+  width:100%;
+  margin-top:10px;
+  border:1px solid #ced9e7;
+  border-radius:14px;
+  padding:12px 14px;
+  font:inherit;
+  resize:vertical;
+  min-height:46px;
+}
+textarea{min-height:160px}
+.small-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.btn-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+button.secondary{
+  height:46px;
+  border:1px solid #d0dceb;
+  background:#fff;
+  color:#35506d;
+  border-radius:14px;
+  padding:0 16px;
+  font-weight:700;
+  cursor:pointer;
+}
+.footer-space{height:44px}
+
+@media (max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(3, minmax(0,1fr))}
+}
+@media (max-width:980px){
+  .stats-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+  .duo{grid-template-columns:1fr}
+}
+@media (max-width:700px){
+  .search-row{grid-template-columns:1fr}
+  #map{height:290px}
+  .stats-grid{grid-template-columns:1fr}
+  .icon-grid{grid-template-columns:1fr}
+  .small-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <h1>Check the numbers.<br><span class="accent">Check the block.</span></h1>
+        <p>This tool gives you a quick ZIP-level read on rent pressure and broader housing slack, then helps you compare that against what you actually see on the ground. Use it to understand whether an area looks more renter-friendly or landlord-friendly — and whether a property-level situation may be worth documenting.</p>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-row">
+        <div class="field">
+          <i class="fa-solid fa-location-dot"></i>
+          <input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="Run a quick ZIP check" onkeydown="if(event.key==='Enter') executeAudit()">
+        </div>
+        <button class="primary" id="auditBtn" onclick="executeAudit()">RUN ZIP CHECK</button>
+      </div>
+      <div class="help-row">
+        <div class="help-pill">Uses HUD + Census baseline data</div><div class="help-pill">API calls routed through Netlify functions</div>
+        <div class="help-pill">Map marker can be dragged to update ZIP</div>
+        <div class="help-pill">Pair the numbers with real-world observations</div>
+      </div>
+    </div>
+
+    <div class="map-card">
+      <div class="map-head">
+        <div>
+          <div class="title">Map view</div>
+          <div class="sub">Search a ZIP, then drag the marker or click elsewhere to check a nearby area.</div>
+        </div>
+        <div id="mapStatus" class="sub">Waiting for a ZIP check…</div>
+      </div>
+      <div id="map"></div>
+      <div class="map-note mono">Map helps you explore nearby ZIPs. It does not prove warehousing by itself — it gives you context to compare with what you actually observe.</div>
+    </div>
+  </section>
+
+  <section class="results">
+    <div id="marketBadgeWrap"></div>
+
+    <div class="stats-grid">
+      <div class="card stat">
+        <div class="label">Vacancy Rate</div>
+        <div class="value" id="valVacancy">--</div>
+        <div class="sub" id="subVacancy">Broad housing vacancy in the ZIP. Lower vacancy usually means tighter supply and more landlord or seller leverage.</div>
+      </div>
+
+      <div class="card stat">
+        <div class="label">Area Rent Benchmark</div>
+        <div class="value" id="valRent">--</div>
+        <div class="sub" id="subRent">Primary value uses HUD one-bedroom fair market rent. The table also tries to populate all HUD unit sizes, with a 1-bedroom fallback if only area rent context is available.</div>
+      </div>
+
+      <div class="card stat">
+        <div class="label">Live Market Rent</div>
+        <div class="value" id="valLiveRent">--</div>
+        <div class="sub" id="subLiveRent">Current listing-based signal from RentCast. This is closer to the market you are actually facing right now.</div>
+      </div>
+
+      <div class="card stat">
+        <div class="label">Rental Pressure Score</div>
+        <div class="value" id="valScore">--</div>
+        <div class="sub" id="subScore">A simple leverage indicator. Higher score means tighter conditions for renters. Lower score means more room to negotiate or resist increases.</div>
+      </div>
+
+      <div class="card stat">
+        <div class="label">Above 2% Vacancy</div>
+        <div class="value" id="valExcess">--</div>
+        <div class="sub" id="subExcess">This shows how far vacancy sits above a very tight baseline. Small percentages can still matter when applied across a whole ZIP's housing stock.</div>
+      </div>
+    </div>
+
+    <div class="card section" id="liveComparisonCard" style="display:none; margin-top:0;">
+      <h2>Baseline vs live market</h2>
+      <p class="lead" id="liveComparisonText">Run a ZIP check to compare HUD baseline rent against current listing-based market rent.</p>
+    </div>
+
+    <div class="duo">
+      <div class="card section">
+        <h2>What to do with this result</h2>
+        <p class="lead">Use the toggle to switch the explanation underneath. The four numbers stay visible, but the interpretation changes depending on whether you are thinking like a renter or looking at the broader housing backdrop.</p>
+
+        <div class="toggle">
+          <button id="tabRent" class="active" onclick="setTab('rent')">Rent</button>
+          <button id="tabHousing" onclick="setTab('housing')">Housing</button>
+        </div>
+
+        <div class="explain-box">
+          <div class="explain-title" id="explainTitle">Why this matters for rent</div>
+          <div class="explain-body" id="explainBody">Run a ZIP first to generate a market read. In general, lower vacancy means fewer open options and more pricing power for landlords. Higher vacancy means more slack, which can make rent increases harder to justify.</div>
+        </div>
+
+        <div class="score-list" id="scoreBreakdown">
+          <div class="score-item"><span>Waiting for data</span><strong>—</strong></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h2>Rent benchmark table</h2>
+        <p class="lead">These are the area benchmark rent levels returned from HUD when available. They are useful for comparison and context, not a guarantee of what every building should charge.</p>
+
+        <div class="rent-table-wrap">
+          <table>
+            <thead>
+              <tr><th>Unit type</th><th>Benchmark rent</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Studio / Efficiency</td><td id="rentStudio">--</td></tr>
+              <tr><td>1 Bedroom</td><td id="rentOne">--</td></tr>
+              <tr><td>2 Bedroom</td><td id="rentTwo">--</td></tr>
+              <tr><td>3 Bedroom</td><td id="rentThree">--</td></tr>
+              <tr><td>4 Bedroom</td><td id="rentFour">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="duo">
+      <div class="card section">
+        <h2>What to look for on the ground</h2>
+        <p class="lead">Warehousing concerns are usually not visible from one number alone. They show up when the market story and the lived reality stop matching. If units are being held empty while prices stay high, that can help create artificial pressure and distort what renters think demand really looks like.</p>
+
+        <div class="icon-grid">
+          <div class="icon-item">
+            <div class="icon"><i class="fa-solid fa-lightbulb"></i></div>
+            <div>
+              <h4>Consistently dark units</h4>
+              <p>If the same block of units stays dark night after night while the property appears fully active on paper, that can be worth paying attention to.</p>
+            </div>
+          </div>
+
+          <div class="icon-item">
+            <div class="icon"><i class="fa-solid fa-envelope"></i></div>
+            <div>
+              <h4>Mail piling up</h4>
+              <p>Overflowing mailboxes or delivery buildup can suggest units are not turning over the way the building claims they are.</p>
+            </div>
+          </div>
+
+          <div class="icon-item">
+            <div class="icon"><i class="fa-solid fa-car"></i></div>
+            <div>
+              <h4>Parking mismatch</h4>
+              <p>A full-looking lot is not always the same as active occupancy. If the same cars do not move for a week or more, they may just be there to create the feeling of a busy property.</p>
+            </div>
+          </div>
+
+          <div class="icon-item">
+            <div class="icon"><i class="fa-solid fa-key"></i></div>
+            <div>
+              <h4>Units always “available”</h4>
+              <p>If leasing language keeps repeating while the same units appear to stay untouched, there may be a mismatch between listing behavior and actual move-in activity.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h2>Before reporting anything</h2>
+        <p class="lead">Use the numbers as context, then document what you actually see. The strongest complaints are grounded in specific, repeatable observations — not just a feeling that something is off.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <strong>Check the market read</strong>
+              <p>Use the ZIP result to understand whether the area looks tighter or looser overall. That helps you judge whether rent pressure looks normal or questionable.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <strong>Log repeated patterns</strong>
+              <p>Look for the same dark units, the same unmoved cars, the same full mailboxes, or the same “available” units across time — not just once.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-num">3</div>
+            <div>
+              <strong>Route it to consumer protection first</strong>
+              <p>For suspected deceptive leasing or market behavior, the state consumer protection office directory is usually the cleanest first stop. Fair housing channels are more specific to discrimination issues.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice">
+          <strong>Important:</strong> This page does not prove warehousing by itself. It helps you understand market context and build a cleaner, more credible observation trail before you escalate anything.
+        </div>
+      </div>
+    </div>
+
+    <div class="card section">
+      <h2>Generate an audit note</h2>
+      <p class="lead">This builds a draft based on the ZIP result. Add the property information and what you personally observed. Then copy it into a complaint form or message.</p>
+
+      <div class="small-grid">
+        <div>
+          <label for="propertyName">Property name</label>
+          <input id="propertyName" placeholder="Example Apartments">
+        </div>
+        <div>
+          <label for="propertyAddress">Property address</label>
+          <input id="propertyAddress" placeholder="123 Main St, City, State">
+        </div>
+      </div>
+
+      <textarea id="observations" placeholder="Add what you saw: dark units, mail piling up, cars not moving, repeated listings, etc."></textarea>
+      <textarea id="auditNote" placeholder="Your generated note will appear here."></textarea>
+
+      <div class="btn-row">
+        <button class="primary" onclick="generateAuditNote()">Generate note</button>
+        <button class="secondary" onclick="copyAuditNote()">Copy note</button>
+        <button class="secondary" onclick="openConsumerProtection()">Open consumer protection directory</button>
+      </div>
+    </div>
+  </section>
+  <div class="footer-space"></div>
+</div>
+
+
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script>
+const MAPBOX_TOKEN = document.querySelector('meta[name="mapbox-token"]')?.content || '';
+
+let map = null;
+let marker = null;
+let currentResult = {
+  zip: null,
+  vacancyRate: null,
+  excessVacancy: null,
+  rentBenchmark: null,
+  rentSource: null,
+  liveRent: null,
+  liveRentCount: null,
+  liveRentUpdated: null,
+  liveRentSource: null,
+  score: null,
+  marketType: null,
+  hudRents: {}
+};
+let activeTab = 'rent';
+
+function fmtMoney(v){
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  return '$' + Math.round(Number(v)).toLocaleString();
+}
+function fmtPct(v){
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  return Number(v).toFixed(1) + '%';
+}
+function clamp(n, min, max){
+  return Math.max(min, Math.min(max, n));
+}
+
+function initMap(){
+  const mapEl = document.getElementById('map');
+  if (!mapEl) return;
+  if (!MAPBOX_TOKEN || typeof mapboxgl === 'undefined'){
+    mapEl.innerHTML = '<div style="padding:30px;color:#57708d">Map not available.</div>';
+    return;
+  }
+
+  mapboxgl.accessToken = MAPBOX_TOKEN;
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v11',
+    center: [-98.5795, 39.8283],
+    zoom: 3.2
+  });
+  map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+  map.on('click', async (e) => {
+    setMarker(e.lngLat.lng, e.lngLat.lat);
+    await reverseGeocodeToZip(e.lngLat.lng, e.lngLat.lat);
+  });
+}
+
+function setMarker(lng, lat){
+  if (!map) return;
+  if (marker) marker.remove();
+  marker = new mapboxgl.Marker({ color: '#2d7ff9', draggable: true })
+    .setLngLat([lng, lat])
+    .addTo(map);
+
+  marker.on('dragend', async () => {
+    const ll = marker.getLngLat();
+    await reverseGeocodeToZip(ll.lng, ll.lat);
+  });
+}
+
+async function reverseGeocodeToZip(lng, lat){
+  if (!MAPBOX_TOKEN) return;
+  try{
+    const mapStatus = document.getElementById('mapStatus');
+    if (mapStatus) mapStatus.textContent = 'Checking selected area…';
+    const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=postcode&country=US&access_token=${MAPBOX_TOKEN}`);
+    const data = await res.json();
+    const zipFeature = data.features?.find(f => Array.isArray(f.place_type) && f.place_type.includes('postcode'));
+    if (zipFeature){
+      const zip = zipFeature.text;
+      const zipInput = document.getElementById('zipInput');
+      if (zipInput) zipInput.value = zip;
+      await executeAudit(zip);
+    } else {
+      if (mapStatus) mapStatus.textContent = 'Could not detect a ZIP from that map point.';
+    }
+  }catch(e){
+    console.warn('Reverse geocode failed', e);
+    const mapStatus = document.getElementById('mapStatus');
+    if (mapStatus) mapStatus.textContent = 'Map ZIP lookup failed.';
+  }
+}
+
+async function geocodeZip(zip){
+  if (!map || !MAPBOX_TOKEN) return;
+  try{
+    const r = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${zip}.json?country=US&types=postcode&access_token=${MAPBOX_TOKEN}`);
+    const geo = await r.json();
+    if (geo.features?.length){
+      const [lng, lat] = geo.features[0].center;
+      map.flyTo({ center: [lng, lat], zoom: 10.7, duration: 1300 });
+      setMarker(lng, lat);
+      const mapStatus = document.getElementById('mapStatus');
+      if (mapStatus) mapStatus.textContent = `Showing ZIP ${zip}. Drag the marker or click nearby to check another area.`;
+    }
+  }catch(e){
+    console.warn('ZIP geocode failed', e);
+  }
+}
+
+async function executeAudit(forcedZip){
+  const zipInput = document.getElementById('zipInput');
+  const zip = (forcedZip || zipInput?.value || '').trim();
+
+  if (!/^\d{5}$/.test(zip)){
+    alert('Please enter a valid 5-digit ZIP code.');
+    return;
+  }
+
+  const btn = document.getElementById('auditBtn');
+  if (btn){
+    btn.disabled = true;
+    btn.textContent = 'CHECKING…';
+  }
+
+  try{
+    const [hudData, censusData, censusRentData, liveRentData] = await Promise.all([
+      fetchHUD(zip),
+      fetchCensusVacancy(zip),
+      fetchCensusRent(zip),
+      fetchLiveRent(zip)
+    ]);
+
+    processResults(zip, hudData, censusData, censusRentData, liveRentData);
+    await geocodeZip(zip);
+  }catch(e){
+    console.error('ZIP check failed', e);
+    alert('The ZIP check failed. Please try again.');
+  }finally{
+    if (btn){
+      btn.disabled = false;
+      btn.textContent = 'RUN ZIP CHECK';
+    }
+  }
+}
+
+
+async function fetchHUD(zip){
+  try{
+    const res = await fetch(`/.netlify/functions/hud?zip=${zip}`);
+    if (!res.ok){
+      console.warn('HUD proxy status', res.status);
+      return null;
+    }
+    const json = await res.json();
+    console.log('HUD proxy response', json);
+    return json.hud || null;
+  }catch(e){
+    console.warn('HUD proxy fetch failed', e);
+    return null;
+  }
+}
+
+async function fetchCensusVacancy(zip){
+  try{
+    const res = await fetch(`/.netlify/functions/hud?zip=${zip}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.censusVacancy || null;
+  }catch(e){
+    console.warn('Census vacancy proxy failed', e);
+    return null;
+  }
+}
+
+async function fetchCensusRent(zip){
+  try{
+    const res = await fetch(`/.netlify/functions/hud?zip=${zip}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.censusRent || null;
+  }catch(e){
+    console.warn('Census rent proxy failed', e);
+    return null;
+  }
+}
+
+async function fetchLiveRent(zip){
+  try{
+    const res = await fetch(`/.netlify/functions/rentcast?zip=${zip}`);
+    if (!res.ok){
+      console.warn('RentCast proxy status', res.status);
+      return null;
+    }
+    const json = await res.json();
+    console.log('RentCast proxy response', json);
+    return json;
+  }catch(e){
+    console.warn('RentCast proxy fetch failed', e);
+    return null;
+  }
+}
+
+function parseHudRents(hudData){
+  let basic = hudData?.data?.basicdata;
+  if (Array.isArray(basic)) basic = basic[0];
+  if (!basic || typeof basic !== 'object') return {};
+
+  console.log('HUD BASIC DATA', basic);
+
+  const normalized = {};
+  for (const [key, value] of Object.entries(basic)) {
+    normalized[key.toLowerCase().replace(/[^a-z0-9]/g, '')] = value;
+  }
+
+  function get(keys){
+    for (let key of keys){
+      key = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (normalized[key] !== undefined && normalized[key] !== null && normalized[key] !== '') {
+        const n = parseFloat(normalized[key]);
+        if (!isNaN(n)) return n;
+      }
+    }
+    return null;
+  }
+
+  const rents = {
+    studio: get(['efficiency','efficiencyfmr','studio','studiofmr']),
+    one: get(['onebedroom','1br','onebdrfmr','fmr1br','onebdr']),
+    two: get(['twobedroom','2br','twobdrfmr','fmr2br','twobdr']),
+    three: get(['threebedroom','3br','threebdrfmr','fmr3br','threebdr']),
+    four: get(['fourbedroom','4br','fourbdrfmr','fmr4br','fourbdr'])
+  };
+
+  for (const [key, value] of Object.entries(basic)) {
+    const k = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const n = parseFloat(value);
+    if (isNaN(n)) continue;
+    if (rents.studio === null && (k.includes('eff') || k.includes('studio'))) rents.studio = n;
+    if (rents.one === null && ((k.includes('one') || k.includes('1')) && (k.includes('bed') || k.includes('fmr')))) rents.one = n;
+    if (rents.two === null && ((k.includes('two') || k.includes('2')) && (k.includes('bed') || k.includes('fmr')))) rents.two = n;
+    if (rents.three === null && ((k.includes('three') || k.includes('3')) && (k.includes('bed') || k.includes('fmr')))) rents.three = n;
+    if (rents.four === null && ((k.includes('four') || k.includes('4')) && (k.includes('bed') || k.includes('fmr')))) rents.four = n;
+  }
+
+  return rents;
+}
+
+function parseCensusVacancy(censusData){
+  if (!Array.isArray(censusData) || censusData.length < 2) {
+    return { vacancyRate: null, totalUnits: null, vacantUnits: null };
+  }
+  const headers = censusData[0];
+  const values = censusData[1];
+  const totalIdx = headers.indexOf('B25002_001E');
+  const vacantIdx = headers.indexOf('B25004_001E');
+  const totalUnits = totalIdx !== -1 ? parseInt(values[totalIdx], 10) : null;
+  const vacantUnits = vacantIdx !== -1 ? parseInt(values[vacantIdx], 10) : null;
+  const vacancyRate = totalUnits > 0 && vacantUnits !== null ? (vacantUnits / totalUnits) * 100 : null;
+  return { vacancyRate, totalUnits, vacantUnits };
+}
+
+function parseCensusRent(censusRentData){
+  if (!Array.isArray(censusRentData) || censusRentData.length < 2) return null;
+  const headers = censusRentData[0];
+  const values = censusRentData[1];
+  const idx = headers.indexOf('B25064_001E');
+  if (idx === -1) return null;
+  const n = parseFloat(values[idx]);
+  return isNaN(n) ? null : n;
+}
+
+function marketTypeFromVacancy(vacancyRate, score, excessVacancy){
+  if (vacancyRate === null) return { label: 'Market read unavailable', cls: 'neutral' };
+  if (vacancyRate <= 3.0 && score >= 6) return { label: 'Seller / landlord market', cls: 'red' };
+  if (vacancyRate >= 6.5 || excessVacancy >= 4.5 || (vacancyRate >= 5.5 && score <= 5)) return { label: 'Buyer / renter market', cls: 'green' };
+  return { label: 'Balanced / mixed market', cls: 'neutral' };
+}
+
+function processResults(zip, hudData, censusData, censusRentData, liveRentData){
+  const hudRents = parseHudRents(hudData);
+  const censusMedianRent = parseCensusRent(censusRentData);
+  const vacancyParsed = parseCensusVacancy(censusData);
+  const vacancyRate = vacancyParsed.vacancyRate;
+
+  if (!hudRents.one && censusMedianRent) hudRents.one = censusMedianRent;
+  if (!hudRents.studio && hudRents.one) hudRents.studio = Math.round(hudRents.one * 0.88);
+  if (!hudRents.two && hudRents.one) hudRents.two = Math.round(hudRents.one * 1.24);
+  if (!hudRents.three && hudRents.two) hudRents.three = Math.round(hudRents.two * 1.22);
+  if (!hudRents.four && hudRents.three) hudRents.four = Math.round(hudRents.three * 1.18);
+
+  const rentBenchmark = hudRents.one ?? censusMedianRent ?? null;
+  const rentSource = hudRents.one !== null && hudRents.one !== undefined ? 'HUD 1BR FMR' : (censusMedianRent !== null ? 'ACS median gross rent' : null);
+  const excessVacancy = vacancyRate !== null ? Math.max(0, vacancyRate - 2) : null;
+  const liveRent = liveRentData?.liveRent ?? null;
+  const liveRentCount = liveRentData?.listingCount ?? null;
+  const liveRentUpdated = liveRentData?.lastUpdatedDate ?? null;
+  const liveRentSource = liveRentData?.source ?? null;
+
+  let score = 5;
+  const breakdown = [];
+
+  if (rentBenchmark !== null){
+    if (rentBenchmark > 2400){ score += 2; breakdown.push(['+2', 'Higher area rent benchmark']); }
+    else if (rentBenchmark > 1700){ score += 1; breakdown.push(['+1', 'Moderately elevated area rent benchmark']); }
+    else if (rentBenchmark < 1000){ score -= 1; breakdown.push(['-1', 'Lower area rent benchmark']); }
+    else breakdown.push(['+0', 'Mid-range area rent benchmark']);
+  } else {
+    breakdown.push(['N/A', 'Rent benchmark unavailable']);
+  }
+
+  if (vacancyRate !== null){
+    if (vacancyRate < 3){ score += 2; breakdown.push(['+2', 'Very tight vacancy']); }
+    else if (vacancyRate < 5){ score += 1; breakdown.push(['+1', 'Tight vacancy']); }
+    else if (vacancyRate > 8){ score -= 1; breakdown.push(['-1', 'Looser vacancy']); }
+    else breakdown.push(['+0', 'Middle vacancy range']);
+  } else {
+    breakdown.push(['N/A', 'Vacancy unavailable']);
+  }
+
+  score = clamp(Math.round(score), 1, 10);
+  const marketType = marketTypeFromVacancy(vacancyRate, score, excessVacancy);
+
+  currentResult = { zip, vacancyRate, excessVacancy, rentBenchmark, rentSource, liveRent, liveRentCount, liveRentUpdated, liveRentSource, score, marketType, hudRents };
+
+  const valVacancy = document.getElementById('valVacancy');
+  const valRent = document.getElementById('valRent');
+  const valLiveRent = document.getElementById('valLiveRent');
+  const valScore = document.getElementById('valScore');
+  const valExcess = document.getElementById('valExcess');
+  if (valVacancy) valVacancy.textContent = fmtPct(vacancyRate);
+  if (valRent) valRent.textContent = fmtMoney(rentBenchmark);
+  if (valLiveRent) valLiveRent.textContent = fmtMoney(liveRent);
+  if (valScore) valScore.textContent = score + '/10';
+  if (valExcess) valExcess.textContent = fmtPct(excessVacancy);
+
+  const subRent = document.getElementById('subRent');
+  const subLiveRent = document.getElementById('subLiveRent');
+  const subVacancy = document.getElementById('subVacancy');
+  const subScore = document.getElementById('subScore');
+  const subExcess = document.getElementById('subExcess');
+
+  if (subRent) subRent.textContent = rentSource ? `Current benchmark source: ${rentSource}. Use it as area context, not a promise for every building.` : 'No rent benchmark returned for this ZIP.';
+  if (subLiveRent) subLiveRent.textContent = liveRent !== null ? `${liveRentSource === 'listings' ? 'Computed from current rental listings' : 'Current listing-based rent signal'}${liveRentCount ? ` using ${Math.round(liveRentCount)} listings` : ''}${liveRentUpdated ? `, updated ${new Date(liveRentUpdated).toLocaleDateString()}` : ''}.` : 'No live listing rent returned for this ZIP. This can happen if RentCast does not return rental data for that ZIP or if the API key tier does not include the endpoint.';
+  if (subVacancy) subVacancy.textContent = vacancyRate === null ? 'Vacancy data did not come through for this ZIP.' : (vacancyRate <= 4 ? 'This is a tighter market. Lower vacancy usually means less slack and more pricing power for landlords or sellers.' : (vacancyRate >= 7 ? 'This is a looser market. More slack can mean more negotiating room for renters or buyers.' : 'This ZIP looks more balanced. Conditions may still vary by property.'));
+  if (subScore) subScore.textContent = score >= 7 ? 'Higher score means renters are dealing with tighter conditions and less leverage.' : (score <= 4 ? 'Lower score means renters may have more room to negotiate or push back on increases.' : 'Middle score means the area has pressure, but it is not an extreme reading.');
+  if (subExcess) subExcess.textContent = excessVacancy === null ? 'No excess vacancy read available.' : `This ZIP sits ${fmtPct(excessVacancy)} above a very tight 2% baseline. Even small percentages can reflect a meaningful number of units at ZIP scale.`;
+
+  const badgeWrap = document.getElementById('marketBadgeWrap');
+  if (badgeWrap){
+    const iconClass = marketType.cls === 'green' ? 'fa-arrow-trend-down' : marketType.cls === 'red' ? 'fa-arrow-trend-up' : 'fa-minus';
+    badgeWrap.innerHTML = `
+      <span class="market-badge ${marketType.cls}">
+        <i class="fa-solid ${iconClass}"></i>
+        ${marketType.label} in ZIP ${zip}
+      </span>
+      <div id="marketWhy" style="margin-top:10px;color:#6c7a89;font-size:.92rem;"></div>
+    `;
+    const whyParts = [];
+    if (vacancyRate !== null) whyParts.push(`vacancy is ${vacancyRate.toFixed(1)}%`);
+    if (excessVacancy !== null) whyParts.push(`${excessVacancy.toFixed(1)}% above a tight 2% baseline`);
+    whyParts.push(`pressure score is ${score}/10`);
+    const marketWhyEl = document.getElementById('marketWhy');
+    if (marketWhyEl) marketWhyEl.textContent = `Classified this way because ${whyParts.join(', ')}.`;
+  }
+
+  const comparisonCard = document.getElementById('liveComparisonCard');
+  const comparisonText = document.getElementById('liveComparisonText');
+  if (comparisonCard && comparisonText){
+    if (rentBenchmark !== null && liveRent !== null){
+      const delta = liveRent - rentBenchmark;
+      const pct = rentBenchmark > 0 ? (delta / rentBenchmark) * 100 : null;
+      let tone = 'Live market rent is close to baseline.';
+      if (delta > 500){
+        tone = `Live market rent is running about ${fmtMoney(delta)} above the area benchmark${pct !== null ? ` (${pct.toFixed(0)}% higher)` : ''}.`;
+      } else if (delta < -250){
+        tone = `Live market rent is coming in below the area benchmark by about ${fmtMoney(Math.abs(delta))}.`;
+      }
+      comparisonText.textContent = `${tone} ${liveRentSource === 'listings' ? 'This live figure was computed from current listings in the ZIP.' : 'This live figure came from RentCast market data.'} Use this gap to judge whether current asking rents look broadly in line with market conditions or stretched well above baseline.`;
+      comparisonCard.style.display = 'block';
+    } else if (comparisonCard) {
+      comparisonText.textContent = 'Run a ZIP check to compare HUD baseline rent against current listing-based market rent.';
+      comparisonCard.style.display = 'block';
+    }
+  }
+
+  const tableIds = { studio: 'rentStudio', one: 'rentOne', two: 'rentTwo', three: 'rentThree', four: 'rentFour' };
+  Object.entries(tableIds).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtMoney(hudRents[key]);
+  });
+
+  const scoreBreakdown = document.getElementById('scoreBreakdown');
+  if (scoreBreakdown) {
+    scoreBreakdown.innerHTML = breakdown.map(item => `<div class="score-item"><span>${item[1]}</span><strong>${item[0]}</strong></div>`).join('');
+  }
+
+  setTab(activeTab);
+  generateAuditNote();
+}
+
+function setTab(tab){
+  activeTab = tab;
+  const rentBtn = document.getElementById('tabRent');
+  const housingBtn = document.getElementById('tabHousing');
+  if (rentBtn) rentBtn.classList.toggle('active', tab === 'rent');
+  if (housingBtn) housingBtn.classList.toggle('active', tab === 'housing');
+
+  const title = document.getElementById('explainTitle');
+  const body = document.getElementById('explainBody');
+  const r = currentResult;
+  if (!title || !body) return;
+
+  if (tab === 'rent'){
+    title.textContent = 'Why this matters for rent';
+    if (!r.zip){
+      body.textContent = 'Run a ZIP first to generate a market read. In general, lower vacancy means fewer open options and more pricing power for landlords. Higher vacancy means more slack, which can make rent increases harder to justify.';
+      return;
+    }
+    const marketSentence = r.marketType.cls === 'green' ? 'This reads more like a renter-friendlier market.' : (r.marketType.cls === 'red' ? 'This reads more like a landlord-friendlier market.' : 'This reads closer to a balanced or mixed market.');
+    body.textContent = `${marketSentence} Vacancy gives you a sense of how much slack exists in the broader housing supply. When vacancy is lower, landlords usually have more leverage because renters have fewer alternatives. When vacancy is higher, rent increases can be harder to justify because the area has more breathing room. The rental pressure score summarizes that leverage dynamic into a simple read rather than trying to predict exact pricing.`;
+  } else {
+    title.textContent = 'Why this matters for housing';
+    if (!r.zip){
+      body.textContent = 'Run a ZIP first to see the broader housing backdrop. Vacancy is a housing-wide signal first, and a rental-context signal second.';
+      return;
+    }
+    body.textContent = `Vacancy here is a broader housing signal — not proof that any one property is doing something wrong. Higher vacancy generally suggests more available housing stock, which can point toward a buyer-friendlier or looser environment. Lower vacancy generally suggests a tighter environment with less slack. If you suspect a property-level mismatch, use this as context and then compare it against what you actually observe on the block.`;
+  }
+}
+
+function generateAuditNote(){
+  const prop = document.getElementById('propertyName')?.value.trim() || '';
+  const addr = document.getElementById('propertyAddress')?.value.trim() || '';
+  const obs = document.getElementById('observations')?.value.trim() || '';
+  const noteEl = document.getElementById('auditNote');
+  if (!noteEl) return;
+
+  const r = currentResult;
+  const marketLine = r.zip ? `I am documenting a concern related to a rental property in ZIP ${r.zip}. The area-level read currently shows ${fmtPct(r.vacancyRate)} vacancy, ${fmtMoney(r.rentBenchmark)} as the benchmark rent, a rental pressure score of ${r.score}/10, and a market read of ${r.marketType.label.toLowerCase()}.` : `I am documenting a concern related to a rental property and would like this reviewed.`;
+  const contextLine = r.excessVacancy !== null ? `The broader ZIP-level housing vacancy sits ${fmtPct(r.excessVacancy)} above a very tight 2% baseline, which I am using only as market context rather than proof of misconduct.` : `I understand that ZIP-level data is only context, not proof.`;
+  const propLine = prop || addr ? `Property involved: ${prop || '[property name not entered]'}${addr ? ' — ' + addr : ''}.` : `Property involved: [add property name and address].`;
+  const obsLine = obs ? `Observed patterns: ${obs}` : `Observed patterns: [add what you saw, such as repeated dark units, mail piling up, cars not moving, or units repeatedly listed as available].`;
+  const closeLine = `I am requesting review of whether the leasing or occupancy presentation for this property may be misleading or otherwise worth further examination through the appropriate consumer protection channel.`;
+  noteEl.value = [marketLine, contextLine, propLine, obsLine, closeLine].join('\n\n');
+}
+
+function copyAuditNote(){
+  const el = document.getElementById('auditNote');
+  if (!el) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(el.value);
+  else {
+    el.select();
+    el.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+  }
+}
+
+function openConsumerProtection(){
+  window.open('https://www.usa.gov/state-consumer', '_blank');
+}
+
+window.executeAudit = executeAudit;
+window.setTab = setTab;
+window.generateAuditNote = generateAuditNote;
+window.copyAuditNote = copyAuditNote;
+window.openConsumerProtection = openConsumerProtection;
+
+initMap();
+setTab('rent');
+</script>
+
+</body>
+</html>
